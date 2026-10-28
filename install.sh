@@ -198,9 +198,10 @@ ok "hub.py installed from $SRC"
 # subprocess gets a credential.
 if [ ! -f "$HUB_ROOT/data/token" ]; then
     head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n' > "$HUB_ROOT/data/token"
-    chmod 600 "$HUB_ROOT/data/token"
 fi
-ok "api token at $HUB_ROOT/data/token"
+# Enforce restrictive permissions even when the token already existed.
+chmod 600 "$HUB_ROOT/data/token"
+ok "api token stored at $HUB_ROOT/data/token"
 
 # ─── 5. model ───
 say "[5/6] model"
@@ -234,7 +235,7 @@ echo $! > "$PIDFILE"
 sleep 2
 kill -0 "$(cat "$PIDFILE")" 2>/dev/null || {
     rm -f "$PIDFILE"; printf 'hub died on startup — tail %s/hub.log\n' "$ROOT" >&2; exit 1; }
-printf 'hub up on http://127.0.0.1:7777  (token: %s)\n' "$(cat "$ROOT/data/token")"
+printf 'hub up on http://127.0.0.1:7777\n'
 CMD
 
 cat > /usr/local/bin/pinky-stop << 'CMD'
@@ -297,4 +298,4 @@ ok "shortcuts"
 printf "\n${GRN}✅ PINKY HUB INSTALLED${NC}\n\n"
 printf "  pinky-model-start %s\n" "$MODEL_NAME"
 printf "  pinky-start\n\n"
-printf "  token: %s\n\n" "$(cat "$HUB_ROOT/data/token")"
+printf "  token stored at %s/data/token (read locally when needed)\n\n" "$HUB_ROOT"
